@@ -8,6 +8,15 @@ I will use TypeScript to create a cloud infrastructure with AWS Cloud Developmen
 You can use default profile from AWS config file `~/.aws/config` or set it explicitly by adding `--profile=sg-profile`
 
 
+## How to deploy
+
+```bash
+npm run build
+cdk synth
+cdk deploy
+```
+
+
 ## How to create a new project
 
 ```bash
