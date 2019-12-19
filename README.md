@@ -14,6 +14,9 @@ You can use default profile from AWS config file `~/.aws/config` or set it expli
 npm run build
 cdk synth
 cdk deploy
+
+# Deploy only HostingStack using "sg-profile" AWS profile
+cdk deploy HostingStack --profile=sg-profile
 ```
 
 
