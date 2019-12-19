@@ -79,5 +79,28 @@ export default class VpcStack extends cdk.Stack {
     
     // EC2 bootstrap script - install NGINX
     asg.addUserData('sudo apt update; sudo apt install nginx-light -y');
+
+
+    /**
+     * Application Load Balancer
+     */
+    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {
+      vpc: vpc,
+      vpcSubnets: { subnetGroupName: 'Web' },
+      internetFacing: true
+    });
+
+    const listener = alb.addListener('WebListeners', {
+      port: 80,
+      open: true,
+    });
+  
+    listener.addTargets('ApplicationFleet', {
+      port: 80,
+      targets: [asg]
+    });
+
+    // Create new Security Group to ALB
+    listener.connections.allowFromAnyIpv4(ec2.Port.tcp(80), 'Allow inbound HTTP');
   }
 }
