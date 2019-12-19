@@ -44,5 +44,40 @@ export default class VpcStack extends cdk.Stack {
     webSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'SSH');
 
 
+    /**
+     * Use Ubuntu AMI
+     * Ubuntu Server 18.04 LTS (HVM), SSD Volume Type
+     */
+    const ubuntuAmi = new ec2.GenericLinuxImage({
+      'eu-west-1': 'ami-02df9ea15c1778c9c',
+      'us-east-1': 'ami-04b9e92b5572fa0d1'
+    });
+    
+
+    /**
+     * Auto Scaling Group
+     */
+    const asg = new autoscaling.AutoScalingGroup(this, 'WebASG', {
+      vpc,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.NANO),
+      machineImage: ubuntuAmi,
+      minCapacity: 2,
+      maxCapacity: 6,
+      cooldown: Duration.seconds(360),
+      vpcSubnets: { subnetGroupName: 'Web' },
+      keyName: SSH_KEY_NAME
+    });
+
+    // Scale policy
+    asg.scaleOnCpuUtilization('CPU70', {
+      targetUtilizationPercent: 70,
+      estimatedInstanceWarmup: Duration.seconds(60)
+    });
+
+    // Attach Security Group to Auto Scale Group
+    asg.addSecurityGroup(webSecurityGroup);
+    
+    // EC2 bootstrap script - install NGINX
+    asg.addUserData('sudo apt update; sudo apt install nginx-light -y');
   }
 }
